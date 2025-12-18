@@ -1,1 +1,299 @@
-TEST
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thought Triage</title>
+  <style>
+    :root { --pad: 16px; }
+    body {
+      margin: 0;
+      font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #0b0c10;
+      color: #e8e8ea;
+      line-height: 1.35;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 20px; }
+    .card {
+      background: #14161c;
+      border: 1px solid #252a36;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    h1 { font-size: 20px; margin: 0 0 10px; }
+    h2 { font-size: 16px; margin: 18px 0 8px; color: #cfd3ff; }
+    p { margin: 10px 0; color: #d7d7da; }
+    .muted { color: #a7aab6; font-size: 13px; }
+    .q { font-size: 18px; margin: 10px 0 14px; }
+    .btns { display: grid; gap: 10px; margin-top: 10px; }
+    button {
+      appearance: none;
+      border: 1px solid #2c3242;
+      background: #1a1d27;
+      color: #e8e8ea;
+      padding: 14px 14px;
+      font-size: 16px;
+      border-radius: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .02s ease, background .15s ease, border-color .15s ease;
+    }
+    button:active { transform: scale(0.99); }
+    button:hover { background: #202437; border-color: #3a4160; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid #2c3242;
+      border-radius: 999px;
+      background: #10131b;
+      color: #cfd3ff;
+      font-size: 13px;
+    }
+    .category {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 12px 0 4px;
+    }
+    .big { font-size: 18px; margin: 12px 0; }
+    .hr { height: 1px; background: #252a36; margin: 16px 0; }
+    .footer { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      background: #0e1016;
+      border: 1px solid #2c3242;
+      padding: 2px 8px;
+      border-radius: 8px;
+      color: #cfd3ff;
+    }
+    .note {
+      background: #0f1220;
+      border: 1px solid #2c3242;
+      border-radius: 14px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="app">
+      <h1>Thought Triage</h1>
+      <p class="muted">A quick flow to name the mechanism (category), then return to the body. No analysis. No story.</p>
+      <div class="hr"></div>
+
+      <div id="screen"></div>
+
+      <div class="footer">
+        <button id="backBtn" style="flex:1; min-width: 140px;">Back</button>
+        <button id="resetBtn" style="flex:1; min-width: 140px;">Reset</button>
+      </div>
+
+      <p class="muted" style="margin-top:12px;">
+        Tip: When you reach a category, say it once: <span class="kbd">“Ah — [category]. Noted.”</span> Then do the anchor.
+      </p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const C = {
+    FUTURE_PROOFING: { label: "Future-proofing", desc: "Imagining outcomes without new evidence." },
+    RESPONSIBILITY_REFLEX: { label: "Responsibility reflex", desc: "Feeling responsible for regulating others or outcomes." },
+    ATTACHMENT_ALARM: { label: "Attachment alarm", desc: "Interpreting ambiguity as threat to connection." },
+    MEANING_MAKING: { label: "Meaning-making", desc: "Assigning significance to neutral/ambiguous signals." },
+    OVER_FUNCTIONING: { label: "Over-functioning", desc: "Urge to fix, explain, soothe, or perform usefulness." },
+    EXCLUSION_PAIN: { label: "Exclusion pain", desc: "Feeling unseen/outside when others are quiet/dysregulated." },
+    PUNISHMENT_STORY: { label: "Punishment story", desc: "Interpreting withdrawal/fatigue as retaliation." },
+    BOUNDARY_GUILT: { label: "Boundary guilt", desc: "Feeling wrong for having or honoring a boundary." },
+    CONTAINMENT_DISCOMFORT: { label: "Containment discomfort", desc: "Unease from not acting when action used to soothe." },
+    VIGILANCE_RESIDUE: { label: "Vigilance residue", desc: "Body still on alert after the event has passed." },
+    ROLE_LOSS: { label: "Role loss", desc: "Disorientation when a long-held role loosens." },
+    WORTH_QUESTIONING: { label: "Worth questioning", desc: "Equating usefulness with value." }
+  };
+
+  const tree = {
+    start: {
+      q: "What’s the main flavor of this thought right now?",
+      a: [
+        { t: "It’s about the future / what might happen", go: "future" },
+        { t: "It’s about what I did / should do (fixing, correcting)", go: "action" },
+        { t: "It’s about connection / being seen / distance", go: "connection" },
+        { t: "It’s mostly in my body (tightness, alertness) more than story", go: "body" }
+      ]
+    },
+    future: {
+      q: "Are you trying to prevent a bad outcome without any new, concrete evidence?",
+      a: [
+        { t: "Yes — my mind is running scenarios", resolve: "FUTURE_PROOFING" },
+        { t: "Not exactly — it’s more about ‘what does this mean?’", go: "meaning" }
+      ]
+    },
+    action: {
+      q: "Is there a strong urge to do something so you feel okay (explain, check, fix, reassure)?",
+      a: [
+        { t: "Yes — I want to fix/repair/perform usefulness", resolve: "OVER_FUNCTIONING" },
+        { t: "No — it feels more like I’m responsible for others’ state", resolve: "RESPONSIBILITY_REFLEX" },
+        { t: "It feels wrong to have the boundary at all", resolve: "BOUNDARY_GUILT" }
+      ]
+    },
+    connection: {
+      q: "What’s the core pain underneath the connection signal?",
+      a: [
+        { t: "Ambiguity feels like threat (tone, silence, missing ritual)", resolve: "ATTACHMENT_ALARM" },
+        { t: "I feel unseen / outside / overlooked", resolve: "EXCLUSION_PAIN" },
+        { t: "It feels like I’m being punished or iced out", resolve: "PUNISHMENT_STORY" },
+        { t: "A role shift (not being needed) feels unsettling", go: "role" }
+      ]
+    },
+    role: {
+      q: "Which is closer right now?",
+      a: [
+        { t: "I feel disoriented because my old role loosened", resolve: "ROLE_LOSS" },
+        { t: "I’m questioning my value if I’m not needed", resolve: "WORTH_QUESTIONING" },
+        { t: "I can’t stand not knowing how something happened (but I’m not asking)", resolve: "CONTAINMENT_DISCOMFORT" }
+      ]
+    },
+    body: {
+      q: "Does it feel like your body is still ‘on’ after the situation is basically over?",
+      a: [
+        { t: "Yes — lingering alertness / scanning", resolve: "VIGILANCE_RESIDUE" },
+        { t: "Not sure — it’s more about interpreting signals", go: "meaning" }
+      ]
+    },
+    meaning: {
+      q: "Are you turning small or ambiguous signals into a bigger conclusion?",
+      a: [
+        { t: "Yes — I’m attaching significance to thin data", resolve: "MEANING_MAKING" },
+        { t: "It’s more about not acting and feeling uncomfortable", resolve: "CONTAINMENT_DISCOMFORT" }
+      ]
+    }
+  };
+
+  const screen = document.getElementById("screen");
+  const backBtn = document.getElementById("backBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let stack = [];
+  let current = "start";
+  let resolved = null;
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function render(){
+    if (resolved){
+      const cat = resolved;
+      screen.innerHTML = `
+        <h2>Category</h2>
+        <div class="category">${escapeHtml(cat.label)}</div>
+        <p class="muted">${escapeHtml(cat.desc)}</p>
+
+        <div class="row">
+          <span class="pill">Say once: <span class="kbd">Ah — ${escapeHtml(cat.label)}. Noted.</span></span>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>Body Anchor</h2>
+        <p class="big"><strong>Do one anchor now</strong> (30–90 seconds). No analysis.</p>
+
+        <div class="btns">
+          <button onclick="window.__triage.anchor('feet')">Feel both feet in your shoes (10 slow seconds)</button>
+          <button onclick="window.__triage.anchor('hand')">One hand on chest or stomach + slow exhale (6 breaths)</button>
+          <button onclick="window.__triage.anchor('orient')">Orient: 3 things you see, 2 you hear, 1 you touch</button>
+          <button onclick="window.__triage.anchor('wall')">Wall press: palms into wall 20 seconds, then release</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="note">
+          <p class="muted" style="margin:0;">
+            Reminder: You’re responding to <strong>mechanisms</strong>, not content.
+            Repeat the label once more if needed, then return to the anchor.
+          </p>
+        </div>
+      `;
+      backBtn.disabled = false;
+      return;
+    }
+
+    const node = tree[current];
+    const answers = node.a.map((x, i) => `<button data-i="${i}">${escapeHtml(x.t)}</button>`).join("");
+
+    screen.innerHTML = `
+      <div class="q">${escapeHtml(node.q)}</div>
+      <div class="btns">${answers}</div>
+    `;
+
+    screen.querySelectorAll("button[data-i]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const choice = node.a[Number(btn.dataset.i)];
+        stack.push(current);
+        if (choice.resolve){
+          resolved = C[choice.resolve];
+        } else {
+          current = choice.go;
+        }
+        render();
+      });
+    });
+
+    backBtn.disabled = stack.length === 0;
+  }
+
+  function back(){
+    if (resolved){
+      resolved = null;
+      render();
+      return;
+    }
+    if (stack.length === 0) return;
+    current = stack.pop();
+    render();
+  }
+
+  function reset(){
+    stack = [];
+    current = "start";
+    resolved = null;
+    render();
+  }
+
+  function anchor(kind){
+    const msgs = {
+      feet: "Feel both feet. Press down gently. Exhale slowly. (10 seconds)",
+      hand: "Hand on chest or stomach. Make the exhale slightly longer. (6 breaths)",
+      orient: "Name 3 things you see, 2 you hear, 1 you touch. Then exhale.",
+      wall: "Press palms into the wall for 20 seconds. Release. Notice the shift."
+    };
+    const msg = msgs[kind] || "Anchor.";
+    try { navigator.vibrate && navigator.vibrate([20, 20, 20]); } catch(e) {}
+    const note = document.createElement("div");
+    note.className = "note";
+    note.style.marginTop = "12px";
+    note.innerHTML = `<p style="margin:0;">${escapeHtml(msg)}</p>`;
+    screen.appendChild(note);
+    setTimeout(() => { try { note.remove(); } catch(e){} }, 3500);
+  }
+
+  window.__triage = { anchor };
+
+  backBtn.addEventListener("click", back);
+  resetBtn.addEventListener("click", reset);
+
+  render();
+})();
+</script>
+</body>
+</html>
+
