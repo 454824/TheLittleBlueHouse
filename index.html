@@ -105,6 +105,8 @@
 <script>
 (function(){
   const C = {
+    UNUSED_CAPACITY_GRIEF: { label: "Unused capacity grief", desc: "Sadness when effort stops and space appears." },
+
     FUTURE_PROOFING: { label: "Future-proofing", desc: "Imagining outcomes without new evidence." },
     RESPONSIBILITY_REFLEX: { label: "Responsibility reflex", desc: "Feeling responsible for regulating others or outcomes." },
     ATTACHMENT_ALARM: { label: "Attachment alarm", desc: "Interpreting ambiguity as threat to connection." },
@@ -119,25 +121,28 @@
     WORTH_QUESTIONING: { label: "Worth questioning", desc: "Equating usefulness with value." }
   };
 
+    // Decision tree (broad -> narrow)
   const tree = {
+    // Entry point
     start: {
       q: "How is this showing up right now?",
       a: [
         { t: "Vague anxiety or tension with no clear thought yet", go: "ambiguous" },
-        { t: "A specific thought or story is already present", go: "explicit" }
+        { t: "A specific thought or story is already present", go: "thought" }
       ]
     },
 
+    // --- Ambiguous / pre-thought tension flow ---
     ambiguous: {
       q: "Where do you notice it most?",
       a: [
-        { t: "Chest / throat / upper body", go: "ambiguous_chest" },
-        { t: "Stomach / gut / lower body", go: "ambiguous_gut" },
-        { t: "Everywhere / restless / buzzing", go: "ambiguous_global" }
+        { t: "Chest / throat / upper body", go: "amb_chest" },
+        { t: "Stomach / gut / lower body", go: "amb_gut" },
+        { t: "Everywhere / restless / buzzing", go: "amb_global" }
       ]
     },
 
-    ambiguous_chest: {
+    amb_chest: {
       q: "Which fits best?",
       a: [
         { t: "Tight or constricted, like holding back", resolve: "CONTAINMENT_DISCOMFORT" },
@@ -146,27 +151,26 @@
       ]
     },
 
-    ambiguous_gut: {
+    amb_gut: {
       q: "Which fits best?",
       a: [
         { t: "Uneasy / unsettled / dread-y", resolve: "FUTURE_PROOFING" },
         { t: "Guilty or wrong somehow", resolve: "BOUNDARY_GUILT" },
-        { t: "Knotted or clenched", resolve: "RESPONSIBILITY_REFLEX" }
+        { t: "Knotted or clenched, like it's on me", resolve: "RESPONSIBILITY_REFLEX" }
       ]
     },
 
-    ambiguous_global: {
+    amb_global: {
       q: "Which fits best?",
       a: [
         { t: "On edge even though nothing is happening now", resolve: "VIGILANCE_RESIDUE" },
         { t: "Agitated urge to do something", resolve: "OVER_FUNCTIONING" },
-        { t: "Disconnected or flat", resolve: "ROLE_LOSS" }
+        { t: "Disoriented because a role shifted", resolve: "ROLE_LOSS" }
       ]
     },
 
-    explicit: 
-
-    start: {
+    // --- Thought-present flow (original) ---
+    thought: {
       q: "What’s the main flavor of this thought right now?",
       a: [
         { t: "It’s about the future / what might happen", go: "future" },
@@ -175,6 +179,7 @@
         { t: "It’s mostly in my body (tightness, alertness) more than story", go: "body" }
       ]
     },
+
     future: {
       q: "Are you trying to prevent a bad outcome without any new, concrete evidence?",
       a: [
@@ -182,6 +187,7 @@
         { t: "Not exactly — it’s more about ‘what does this mean?’", go: "meaning" }
       ]
     },
+
     action: {
       q: "Is there a strong urge to do something so you feel okay (explain, check, fix, reassure)?",
       a: [
@@ -190,6 +196,7 @@
         { t: "It feels wrong to have the boundary at all", resolve: "BOUNDARY_GUILT" }
       ]
     },
+
     connection: {
       q: "What’s the core pain underneath the connection signal?",
       a: [
@@ -199,6 +206,7 @@
         { t: "A role shift (not being needed) feels unsettling", go: "role" }
       ]
     },
+
     role: {
       q: "Which is closer right now?",
       a: [
@@ -207,6 +215,7 @@
         { t: "I can’t stand not knowing how something happened (but I’m not asking)", resolve: "CONTAINMENT_DISCOMFORT" }
       ]
     },
+
     body: {
       q: "Does it feel like your body is still ‘on’ after the situation is basically over?",
       a: [
@@ -214,6 +223,7 @@
         { t: "Not sure — it’s more about interpreting signals", go: "meaning" }
       ]
     },
+
     meaning: {
       q: "Are you turning small or ambiguous signals into a bigger conclusion?",
       a: [
