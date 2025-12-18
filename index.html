@@ -121,6 +121,52 @@
 
   const tree = {
     start: {
+      q: "How is this showing up right now?",
+      a: [
+        { t: "Vague anxiety or tension with no clear thought yet", go: "ambiguous" },
+        { t: "A specific thought or story is already present", go: "explicit" }
+      ]
+    },
+
+    ambiguous: {
+      q: "Where do you notice it most?",
+      a: [
+        { t: "Chest / throat / upper body", go: "ambiguous_chest" },
+        { t: "Stomach / gut / lower body", go: "ambiguous_gut" },
+        { t: "Everywhere / restless / buzzing", go: "ambiguous_global" }
+      ]
+    },
+
+    ambiguous_chest: {
+      q: "Which fits best?",
+      a: [
+        { t: "Tight or constricted, like holding back", resolve: "CONTAINMENT_DISCOMFORT" },
+        { t: "Heavy or sad, like loss without words", resolve: "UNUSED_CAPACITY_GRIEF" },
+        { t: "Sharp or alert, like bracing", resolve: "ATTACHMENT_ALARM" }
+      ]
+    },
+
+    ambiguous_gut: {
+      q: "Which fits best?",
+      a: [
+        { t: "Uneasy / unsettled / dread-y", resolve: "FUTURE_PROOFING" },
+        { t: "Guilty or wrong somehow", resolve: "BOUNDARY_GUILT" },
+        { t: "Knotted or clenched", resolve: "RESPONSIBILITY_REFLEX" }
+      ]
+    },
+
+    ambiguous_global: {
+      q: "Which fits best?",
+      a: [
+        { t: "On edge even though nothing is happening now", resolve: "VIGILANCE_RESIDUE" },
+        { t: "Agitated urge to do something", resolve: "OVER_FUNCTIONING" },
+        { t: "Disconnected or flat", resolve: "ROLE_LOSS" }
+      ]
+    },
+
+    explicit: 
+
+    start: {
       q: "What’s the main flavor of this thought right now?",
       a: [
         { t: "It’s about the future / what might happen", go: "future" },
